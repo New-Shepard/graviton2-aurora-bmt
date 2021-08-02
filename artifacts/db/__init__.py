@@ -9,14 +9,14 @@ class Aurora(core.NestedStack):
     def __init__(self, scope: core.Construct, id: str, bmt_vpc: ec2.Vpc, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
-        db_subnet_group = rds.SubnetGroup(self, 'Aurora',
+        db_subnet_group = rds.SubnetGroup(self, 'subnetg',
             description='aurora subnet group',
             vpc=bmt_vpc,
             removal_policy=core.RemovalPolicy.DESTROY,
-            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.ISOLATED)
+            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE)
         )
 
-        db_security_group = ec2.SecurityGroup(self, 'aurora-sg',
+        db_security_group = ec2.SecurityGroup(self, 'sg',
             vpc=bmt_vpc
         )
 
@@ -30,16 +30,29 @@ class Aurora(core.NestedStack):
             )
         )
 
-        param_group = rds.ParameterGroup(self, 'bmt-aurora-param',
+        param_group = rds.ParameterGroup(self, 'paramg',
             engine=rds.DatabaseClusterEngine.AURORA_MYSQL
         )
         param_group.add_parameter("performance_schema", "1")
 
-        rds.DatabaseCluster(self, 'bmt-aurora-cluster',
-            engine=rds.DatabaseClusterEngine.aurora_mysql(version=rds.AuroraMysqlEngineVersion.VER_2_07_1),
+        rds.DatabaseCluster(self, 'r5-',
+            engine=rds.DatabaseClusterEngine.aurora_mysql(version=rds.AuroraMysqlEngineVersion.VER_2_09_2),
             instance_props=rds.InstanceProps(
                 vpc=bmt_vpc,
-                instance_type=ec2.InstanceType.of(instance_class=ec2.InstanceClass.BURSTABLE3, instance_size=ec2.InstanceSize.MEDIUM),
+                instance_type=ec2.InstanceType.of(instance_class=ec2.InstanceClass.MEMORY5, instance_size=ec2.InstanceSize.LARGE),
+                security_groups=[db_security_group]
+            ),
+            instances=1,
+            subnet_group=db_subnet_group,
+            parameter_group=param_group,
+            removal_policy=core.RemovalPolicy.DESTROY
+        )
+
+        rds.DatabaseCluster(self, 'r6g-',
+            engine=rds.DatabaseClusterEngine.aurora_mysql(version=rds.AuroraMysqlEngineVersion.VER_2_09_2),
+            instance_props=rds.InstanceProps(
+                vpc=bmt_vpc,
+                instance_type=ec2.InstanceType.of(instance_class=ec2.InstanceClass.MEMORY6_GRAVITON, instance_size=ec2.InstanceSize.LARGE),
                 security_groups=[db_security_group]
             ),
             instances=1,

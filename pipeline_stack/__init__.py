@@ -7,15 +7,13 @@ from aws_cdk import (
 )
 
 from scenarios import (
-    SampleScenarioStack,
+    AuroraGraviton2ScenarioStack,
 )
 
 class DeployStage(core.Stage):
     def __init__(self, scope: core.Construct, id: str, **kwargs):
         super().__init__(scope, id, **kwargs)
-
-        SampleScenarioStack(self, 'Sample')
-
+        AuroraGraviton2ScenarioStack(self, 'AuroraGraviton2')
 
 class CdkPipelineStack(core.Stack):
     def __init__(self, scope: core.Construct, id: str, params: dict, **kwargs):
@@ -49,4 +47,4 @@ class CdkPipelineStack(core.Stack):
             )
         )
 
-        pipeline.add_application_stage(DeployStage(self, 'Deploy'))
+        pipeline.add_application_stage(DeployStage(self, 'deploy'))

@@ -7,11 +7,19 @@ from aws_cdk import (
     core
 )
 
+from app_context import (
+    AppContext,
+    Parameters,
+)
 from pipeline_stack import CdkPipelineStack as pipeline
 
 app = core.App()
 secret_name = app.node.try_get_context("secret_name")
 region = app.node.try_get_context("region")
+
+AppContext.secret_name = secret_name
+AppContext.region = region
+Parameters.instance()
 
 session = boto3.session.Session()
 client = session.client(service_name='secretsmanager', region_name=region)
